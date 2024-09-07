@@ -1,3 +1,4 @@
+// Cloudflare Workers 的入口函数，监听 fetch 事件
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
@@ -5,306 +6,239 @@ addEventListener('fetch', event => {
 // 主处理请求函数
 async function handleRequest(request) {
   if (request.method === 'GET') {
-    // 如果是GET请求，返回HTML页面
+    // 如果是 GET 请求，返回 HTML 页面
     return new Response(renderHTMLPage(), {
       headers: { 'Content-Type': 'text/html' },
     });
   } else if (request.method === 'POST' && request.url.endsWith('/upload')) {
-    // 如果是POST请求，处理图片上传
+    // 处理图片上传的 POST 请求
     return await handleImageUpload(request);
   } else {
-    // 其他请求返回错误
-    return new Response('无效请求', { status: 400 });
+    // 对于无效请求返回 400 错误
+    return new Response('Invalid Request', { status: 400 });
   }
 }
 
-// 返回嵌入HTML的函数
+// HTML 页面，用于上传图片、显示 Base64 结果以及一键复制功能
 function renderHTMLPage() {
   return `
   <!DOCTYPE html>
-<html lang="en">
-<head>
+  <html lang="en">
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image & Base64 Converter</title>
+    <title>Image to Base64 Converter</title>
     <style>
-        /* Base styles */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        h1 {
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        h2 {
-            font-size: 1.2em;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        input, select, button, textarea {
-            background: rgba(255, 255, 255, 0.1);
-            color: inherit;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 10px;
-            margin: 10px 0;
-            width: 80%;
-            max-width: 400px;
-            box-sizing: border-box;
-            outline: none;
-            transition: all 0.3s ease;
-            font-size: 1em;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
-        }
-
-        button {
-            cursor: pointer;
-            background: #007bff;
-            border: none;
-            color: #fff;
-            text-transform: uppercase;
-            font-weight: bold;
-            transition: background 0.3s ease, transform 0.2s;
-        }
-
-        button:hover {
-            background: #0056b3;
-            transform: scale(1.05);
-        }
-
-        button:active {
-            transform: scale(1);
-        }
-
-        #base64Output {
-            background-color: rgba(0, 0, 0, 0.05);
-            padding: 10px;
-            border-radius: 5px;
-            text-align: left;
-            word-break: break-all;
-            margin: 10px 0;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-        }
-
-        .toggle-container {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .theme-toggle, .language-toggle {
-            cursor: pointer;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            transition: background 0.3s ease;
-        }
-
-        .theme-toggle:hover, .language-toggle:hover {
-            background-color: #f0f0f0;
-        }
-
-        /* Dark Mode Styles */
-        body.dark-mode {
-            background: #2b2b2b;
-            color: #ddd;
-        }
-
-        body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #444;
-        }
-
-        body.dark-mode button {
-            background: #009999;
-        }
-
-        body.dark-mode button:hover {
-            background: #007777;
-        }
-
-        body.dark-mode #base64Output {
-            background-color: rgba(0, 0, 0, 0.5);
-            border: 1px solid #444;
-        }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+        background-color: #f4f4f4;
+      }
+      h1 {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      h2 {
+        font-size: 1.2em;
+        margin: 20px 0;
+        text-align: center;
+      }
+      input, button, textarea {
+        background: rgba(255, 255, 255, 0.1);
+        color: inherit;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 10px 0;
+        width: 80%;
+        max-width: 400px;
+        box-sizing: border-box;
+        outline: none;
+        font-size: 1em;
+      }
+      button {
+        cursor: pointer;
+        background: #007bff;
+        border: none;
+        color: #fff;
+        text-transform: uppercase;
+        font-weight: bold;
+      }
+      #base64Output {
+        background-color: rgba(0, 0, 0, 0.05);
+        padding: 10px;
+        border-radius: 5px;
+        word-break: break-all;
+        margin: 10px 0;
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+      }
+      #fileSizeInfo {
+        color: green;
+      }
+      .hidden {
+        display: none;
+      }
+      .copy-button {
+        background-color: #28a745;
+        color: #fff;
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .copy-button:hover {
+        background-color: #218838;
+      }
     </style>
-</head>
-<body>
-    <h1 data-lang="title">Image to Base64 & Base64 to Image Converter</h1>
-    
-    <div class="toggle-container">
-        <button class="theme-toggle" onclick="toggleTheme()" data-lang="theme-toggle">Toggle Dark/Light Mode</button>
-        <button class="language-toggle" onclick="toggleLanguage()" data-lang="language-toggle">Switch Language / 切换语言</button>
-    </div>
+  </head>
+  <body>
+    <h1>Image to Base64 & Base64 to Image Converter</h1>
 
-    <!-- Image Upload Section -->
-    <h2 data-lang="upload-title">Upload Image and Generate Base64</h2>
+    <h2>Upload Image and Generate Base64</h2>
     <input type="file" id="imageInput" accept="image/*">
-    <select id="imageFormat">
-        <option value="png">PNG</option>
-        <option value="jpeg">JPEG</option>
-        <option value="gif">GIF</option>
-    </select>
-    <button onclick="uploadImage()" data-lang="upload-button">Upload and Convert to Base64</button>
+    <button onclick="uploadImage()">Upload and Convert to Base64</button>
+    <p id="fileSizeInfo" class="hidden"></p>
     <p id="base64Output"></p>
+    <button id="copyButton" class="copy-button hidden" onclick="copyBase64()">Copy Base64 to Clipboard</button>
 
-    <!-- Base64 to Image Section -->
-    <h2 data-lang="convert-title">Convert Base64 to Image</h2>
+    <h2>Convert Base64 to Image</h2>
     <textarea id="base64Input" rows="10" cols="50" placeholder="Paste Base64 encoded data here"></textarea><br>
-    <select id="outputFormat">
-        <option value="png">PNG</option>
-        <option value="jpeg">JPEG</option>
-        <option value="gif">GIF</option>
-    </select>
-    <button onclick="convertToImage()" data-lang="convert-button">Convert and Download Image</button>
+    <button onclick="convertToImage()">Convert and Download Image</button>
 
     <script>
-        // Handle theme toggle
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
+      // 上传图片并将其转换为Base64
+      async function uploadImage() {
+        const fileInput = document.getElementById("imageInput").files[0];
+        const fileSizeInfo = document.getElementById("fileSizeInfo");
+        const copyButton = document.getElementById("copyButton");
+        const base64Output = document.getElementById("base64Output");
+
+        fileSizeInfo.classList.remove('hidden'); // 显示文件大小信息
+        copyButton.classList.add('hidden'); // 隐藏复制按钮
+        base64Output.innerText = ''; // 清空之前的Base64结果
+
+        if (!fileInput) {
+          alert("Please select an image to upload.");
+          return;
         }
 
-        // Handle language toggle
-        function toggleLanguage() {
-            const elements = document.querySelectorAll('[data-lang]');
-            elements.forEach(el => {
-                const key = el.getAttribute('data-lang');
-                if (currentLanguage === 'en') {
-                    el.textContent = translations['zh'][key] || el.textContent;
-                } else {
-                    el.textContent = translations['en'][key] || el.textContent;
-                }
-            });
-            currentLanguage = currentLanguage === 'en' ? 'zh' : 'en';
-        }
+        // 显示文件大小
+        fileSizeInfo.innerText = `File size: ${(fileInput.size / 1024 / 1024).toFixed(2)} MB`;
 
-        // Translation data
-        const translations = {
-            en: {
-                'title': 'Image to Base64 & Base64 to Image Converter',
-                'upload-title': 'Upload Image and Generate Base64',
-                'upload-button': 'Upload and Convert to Base64',
-                'convert-title': 'Convert Base64 to Image',
-                'convert-button': 'Convert and Download Image',
-                'theme-toggle': 'Toggle Dark/Light Mode',
-                'language-toggle': 'Switch Language / 切换语言'
-            },
-            zh: {
-                'title': '图片与Base64编码转换器',
-                'upload-title': '上传图片并生成Base64',
-                'upload-button': '上传并转换为Base64',
-                'convert-title': 'Base64转换为图片',
-                'convert-button': '转换并下载图片',
-                'theme-toggle': '切换明亮/暗黑模式',
-                'language-toggle': 'Switch Language / 切换语言'
-            }
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const base64String = event.target.result.split(',')[1];
+          base64Output.innerText = base64String || "Failed to convert image.";
+          copyButton.classList.remove('hidden'); // 显示复制按钮
+        };
+        reader.onerror = function () {
+          alert("Failed to read the file, please try again.");
         };
 
-        let currentLanguage = 'en'; // Default language is English
+        reader.readAsDataURL(fileInput); // 读取文件并转换为Base64
+      }
 
-        // Handle image upload and convert to Base64
-        async function uploadImage() {
-            const fileInput = document.getElementById("imageInput").files[0];
-            const format = document.getElementById("imageFormat").value;
+      // 一键复制Base64到剪贴板
+      function copyBase64() {
+        const base64Output = document.getElementById("base64Output").innerText;
+        const textArea = document.createElement('textarea');
+        textArea.value = base64Output;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert("Base64 copied to clipboard!");
+      }
 
-            if (!fileInput) {
-                alert(currentLanguage === 'en' ? "Please select an image to upload." : "请选择图片进行上传。");
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                const base64String = event.target.result.split(',')[1];
-                document.getElementById("base64Output").innerText = base64String || (currentLanguage === 'en' ? "Failed to convert image, please try again." : "图片转换失败，请重试。");
-            };
-            reader.onerror = function () {
-                alert(currentLanguage === 'en' ? "Failed to read the file, please try again." : "读取文件失败，请重试。");
-            };
-
-            reader.readAsDataURL(fileInput);
+      // Base64转换为图片并下载
+      function convertToImage() {
+        const base64Data = document.getElementById("base64Input").value.trim();
+        if (!base64Data) {
+          alert("Please enter Base64 encoded data.");
+          return;
         }
 
-        // Convert Base64 string to image and download
-        function convertToImage() {
-            const base64Data = document.getElementById("base64Input").value.trim();
-            const outputFormat = document.getElementById("outputFormat").value;
+        try {
+          const detectedMimeType = detectMimeType(base64Data);
+          if (!detectedMimeType) {
+            alert("Unsupported image type.");
+            return;
+          }
 
-            if (!base64Data) {
-                alert(currentLanguage === 'en' ? "Please enter Base64 encoded data." : "请输入Base64编码数据。");
-                return;
-            }
-
-            try {
-                const link = document.createElement("a");
-                link.href = "data:image/" + outputFormat + ";base64," + base64Data;
-                link.download = "image." + outputFormat;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (error) {
-                console.error("Failed to convert Base64 to image:", error);
-                alert(currentLanguage === 'en' ? "Invalid Base64 data. Please check and try again." : "Base64数据无效，请检查后重试。");
-            }
+          // 生成下载链接
+          const link = document.createElement("a");
+          link.href = "data:image/" + detectedMimeType + ";base64," + base64Data;
+          link.download = "image." + detectedMimeType;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (error) {
+          alert("Invalid Base64 data. Please check and try again.");
         }
+      }
+
+      // 根据Base64数据检测MIME类型
+      function detectMimeType(base64) {
+        const mimeSignatures = {
+          jpeg: "/9j/",
+          png: "iVBORw0KGgo",
+          gif: "R0lGODlh",
+          bmp: "Qk0",
+          webp: "UklGRhIAA",
+          svg: "PHN2ZyB",
+          tiff: "SUkqAA",
+        };
+
+        for (const [type, signature] of Object.entries(mimeSignatures)) {
+          if (base64.startsWith(signature)) {
+            return type;
+          }
+        }
+        return null;
+      }
     </script>
-</body>
-</html>
-
-
-
+  </body>
+  </html>
   `;
 }
 
 // 处理图片上传的逻辑
 async function handleImageUpload(request) {
   try {
-    const formData = await request.formData();
-    const image = formData.get('image');
-    const format = formData.get('format') || 'png';
+    const contentType = request.headers.get('content-type') || '';
+    
+    // 确保请求是 multipart/form-data 类型
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const imageFile = formData.get('image');
 
-    if (!image) {
-      return new Response(JSON.stringify({ error: '未上传图片' }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 400,
+      if (!imageFile) {
+        return new Response(JSON.stringify({ error: '未上传图片' }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 400,
+        });
+      }
+
+      // 读取图片的 ArrayBuffer
+      const arrayBuffer = await imageFile.arrayBuffer();
+      const base64String = arrayBufferToBase64(arrayBuffer);
+
+      return new Response(JSON.stringify({ base64: base64String }), {
+        headers: { 'Content-Type': 'application/json' }
       });
+    } else {
+      return new Response('不支持的内容类型', { status: 415 });
     }
-
-    const supportedFormats = ['png', 'jpeg', 'gif'];
-
-    if (!supportedFormats.includes(format)) {
-      return new Response(JSON.stringify({ error: '不支持的图片格式' }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 400,
-      });
-    }
-
-    const arrayBuffer = await image.arrayBuffer();
-    const base64String = arrayBufferToBase64(arrayBuffer);
-
-    return new Response(JSON.stringify({ base64: base64String }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
   } catch (error) {
     return new Response(JSON.stringify({ error: '处理图片时发生错误' }), {
       headers: { 'Content-Type': 'application/json' },
@@ -333,4 +267,53 @@ function base64ToArrayBuffer(base64) {
     bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes.buffer;
+}
+
+// 检查文件格式是否受支持
+function isSupportedFileType(mimeType) {
+  const supportedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml', 'image/tiff'];
+  return supportedTypes.includes(mimeType);
+}
+
+// 自动检测和转换格式
+function autoDetectAndConvert(base64) {
+  const mimeType = detectMimeType(base64);
+  if (!mimeType) {
+    alert('无法识别的图片格式');
+    return;
+  }
+  convertToImage(base64, mimeType);
+}
+
+// 下载图片
+function downloadImage(base64Data, filename, mimeType) {
+  const link = document.createElement('a');
+  link.href = `data:${mimeType};base64,${base64Data}`;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// 处理错误消息的显示
+function showErrorMessage(message) {
+  const errorDiv = document.getElementById("error");
+  errorDiv.textContent = message;
+  errorDiv.style.display = "block";
+}
+
+// 基于文件扩展名自动检测文件类型
+function detectFileExtension(filename) {
+  const extension = filename.split('.').pop().toLowerCase();
+  const mimeTypeMap = {
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "png": "image/png",
+    "gif": "image/gif",
+    "bmp": "image/bmp",
+    "webp": "image/webp",
+    "svg": "image/svg+xml",
+    "tiff": "image/tiff"
+  };
+  return mimeTypeMap[extension] || null;
 }
