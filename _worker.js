@@ -22,8 +22,10 @@ function renderHTMLPage() {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Image & Base64 Converter</title>
       <style>
+          @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+  
           body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              font-family: 'Roboto', sans-serif;
               display: flex;
               flex-direction: column;
               align-items: center;
@@ -31,33 +33,42 @@ function renderHTMLPage() {
               min-height: 100vh;
               margin: 0;
               padding: 20px;
+              background: linear-gradient(135deg, #1f3b4d 0%, #283e56 50%, #1f3b4d 100%);
+              color: #f3f4f6;
               box-sizing: border-box;
-              background-color: #f6f8fa;
-              color: #24292e;
+              overflow-x: hidden;
           }
   
           h1, h2 {
               text-align: center;
+              color: #00d9ff;
           }
   
           input, select, button, textarea {
-              padding: 10px;
+              padding: 12px;
               margin: 10px 0;
-              width: 80%;
+              width: 90%;
               max-width: 400px;
-              border-radius: 5px;
-              border: 1px solid #d1d5da;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+              border-radius: 8px;
+              border: 1px solid #3a4b5c;
+              background-color: #2a3d50;
+              color: #f3f4f6;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+              transition: all 0.3s ease;
           }
   
           button {
-              background-color: #2ea44f;
-              color: white;
+              background-color: #00d9ff;
+              border: none;
+              color: #1f3b4d;
+              font-weight: 500;
               cursor: pointer;
+              transition: background-color 0.3s ease;
           }
   
           button:hover {
-              background-color: #22863a;
+              background-color: #0084a6;
+              transform: scale(1.05);
           }
   
           #base64Output, #imagePreview {
@@ -69,19 +80,18 @@ function renderHTMLPage() {
               width: 100%;
               height: 150px;
               resize: none;
-              padding: 10px;
-              border-radius: 5px;
-              border: 1px solid #d1d5da;
-              background-color: #f6f8fa;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+              border: 1px solid #3a4b5c;
+              background-color: #192531;
+              color: #f3f4f6;
+              border-radius: 8px;
               overflow-y: auto;
           }
   
           img {
               max-width: 400px;
               margin-top: 20px;
-              border: 1px solid #ddd;
-              border-radius: 5px;
+              border: 2px solid #00d9ff;
+              border-radius: 10px;
           }
   
           .lang-switch {
@@ -89,9 +99,52 @@ function renderHTMLPage() {
           }
   
           .copy-confirmation {
-              color: green;
+              color: #00ff73;
               font-size: 0.9em;
               display: none;
+          }
+  
+          .lang-switch select {
+              background-color: #192531;
+              color: #00d9ff;
+          }
+  
+          select {
+              appearance: none;
+              padding: 12px;
+              background-color: #192531;
+              border: 1px solid #00d9ff;
+              border-radius: 8px;
+              color: #00d9ff;
+          }
+  
+          textarea::placeholder {
+              color: #8893a2;
+          }
+  
+          button:active {
+              transform: scale(0.98);
+          }
+  
+          @keyframes backgroundShift {
+              0% {
+                  background-position: 0 0;
+              }
+              100% {
+                  background-position: 100% 100%;
+              }
+          }
+  
+          body::before {
+              content: '';
+              position: absolute;
+              top: -10%;
+              left: -10%;
+              width: 120%;
+              height: 120%;
+              background: radial-gradient(circle at center, transparent, rgba(255, 255, 255, 0.1));
+              z-index: -1;
+              animation: backgroundShift 15s infinite linear;
           }
       </style>
   </head>
@@ -240,6 +293,7 @@ function renderHTMLPage() {
       </script>
   </body>
   </html>
+  
   `;
 }
 
